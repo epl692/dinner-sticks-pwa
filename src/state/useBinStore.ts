@@ -1,14 +1,9 @@
 import { create } from 'zustand'
 import { createWeeklyBin, type WeeklyBin } from '../domain/entities/weeklyBin'
-import type { Stick } from '../domain/entities/stick'
-import { addStickToBin as addStickToBinRule, getAddCandidates as getAddCandidatesRule } from '../domain/rules/addToBin'
+import { addStickToBin as addStickToBinRule } from '../domain/rules/addToBin'
 import { markStickDone } from '../domain/rules/markDone'
 import { removeStickFromBin } from '../domain/rules/removeFromBin'
-import {
-  getReplaceCandidates as getReplaceCandidatesRule,
-  replaceRandomCandidate,
-  replaceWithChoice as replaceWithChoiceRule,
-} from '../domain/rules/replace'
+import { replaceRandomCandidate, replaceWithChoice as replaceWithChoiceRule } from '../domain/rules/replace'
 import * as weeklyBinRepository from '../data/repositories/weeklyBinRepository'
 import { useSticksStore } from './useSticksStore'
 
@@ -25,9 +20,14 @@ interface BinState {
   replaceWithChoice: (stickId: string, chosenStickId: string) => Promise<void>
   /** Uncapped bin growth (§4.4a). */
   addStick: (stickId: string) => Promise<void>
-  getReplaceCandidates: () => Stick[]
-  getAddCandidates: () => Stick[]
 }
+
+// Candidate lists (getReplaceCandidates/getAddCandidates from the domain layer)
+// are deliberately NOT exposed as store methods here. They'd need to be called
+// via a selector for components to react to changes, but a selector that
+// re-derives a fresh array every call breaks React's useSyncExternalStore
+// snapshot-caching contract. Callers should subscribe to `bin` and the pool's
+// `sticks` directly and compute candidates in the render body instead.
 
 export const useBinStore = create<BinState>((set, get) => ({
   poolId: null,
@@ -87,17 +87,5 @@ export const useBinStore = create<BinState>((set, get) => ({
     const updated = addStickToBinRule(bin, stickId)
     await weeklyBinRepository.upsertBin(updated)
     set({ bin: updated })
-  },
-
-  getReplaceCandidates: () => {
-    const { bin } = get()
-    if (!bin) return []
-    return getReplaceCandidatesRule(useSticksStore.getState().sticks, bin)
-  },
-
-  getAddCandidates: () => {
-    const { bin } = get()
-    if (!bin) return []
-    return getAddCandidatesRule(useSticksStore.getState().sticks, bin)
   },
 }))

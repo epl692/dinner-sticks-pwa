@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from '../../data/db'
+import type { Stick } from '../../domain/entities/stick'
 import { useSelectionSessionStore } from '../useSelectionSessionStore'
 import { useSticksStore } from '../useSticksStore'
 
@@ -22,6 +23,21 @@ async function seedSticks(names: string[]) {
   }
 }
 
+/** Mirrors how components derive these from `session` + `sticks` in the render body. */
+function drawnSticks(): Stick[] {
+  const session = useSelectionSessionStore.getState().session
+  if (!session) return []
+  const byId = new Map(useSticksStore.getState().sticks.map((s) => [s.id, s]))
+  return session.drawnStickIds.map((id) => byId.get(id)).filter((s): s is Stick => s !== undefined)
+}
+
+function hasEligibleRemaining(): boolean {
+  const session = useSelectionSessionStore.getState().session
+  if (!session) return false
+  const ineligible = new Set([...session.drawnStickIds, ...session.discardedStickIds])
+  return useSticksStore.getState().sticks.some((s) => !ineligible.has(s.id))
+}
+
 describe('useSelectionSessionStore', () => {
   it('refuses to start a draw on an empty pool', async () => {
     await useSticksStore.getState().loadForPool(POOL_ID)
@@ -35,7 +51,7 @@ describe('useSelectionSessionStore', () => {
     const result = useSelectionSessionStore.getState().start(POOL_ID)
 
     expect(result).toEqual({ ok: true })
-    expect(useSelectionSessionStore.getState().drawnSticks()).toHaveLength(3)
+    expect(drawnSticks()).toHaveLength(3)
     expect(useSelectionSessionStore.getState().reducedCount).toBe(3)
   })
 
@@ -43,33 +59,31 @@ describe('useSelectionSessionStore', () => {
     await seedSticks(['A', 'B', 'C', 'D', 'E', 'F'])
     useSelectionSessionStore.getState().start(POOL_ID)
 
-    expect(useSelectionSessionStore.getState().drawnSticks()).toHaveLength(5)
+    expect(drawnSticks()).toHaveLength(5)
     expect(useSelectionSessionStore.getState().reducedCount).toBeNull()
   })
 
   it('discard permanently excludes a stick and redraws from what remains', async () => {
     await seedSticks(['A', 'B', 'C', 'D', 'E', 'F'])
     useSelectionSessionStore.getState().start(POOL_ID)
-    const toDiscard = useSelectionSessionStore.getState().drawnSticks()[0].id
+    const toDiscard = drawnSticks()[0].id
 
     useSelectionSessionStore.getState().discard(toDiscard)
 
-    expect(useSelectionSessionStore.getState().drawnSticks().map((s) => s.id)).not.toContain(
-      toDiscard,
-    )
-    expect(useSelectionSessionStore.getState().drawnSticks()).toHaveLength(5)
+    expect(drawnSticks().map((s) => s.id)).not.toContain(toDiscard)
+    expect(drawnSticks()).toHaveLength(5)
   })
 
   it('hasEligibleRemaining reflects whether any pool stick is still drawable', async () => {
     await seedSticks(['A'])
     useSelectionSessionStore.getState().start(POOL_ID)
-    const only = useSelectionSessionStore.getState().drawnSticks()[0].id
+    const only = drawnSticks()[0].id
 
-    expect(useSelectionSessionStore.getState().hasEligibleRemaining()).toBe(false)
+    expect(hasEligibleRemaining()).toBe(false)
 
     useSelectionSessionStore.getState().discard(only)
-    expect(useSelectionSessionStore.getState().hasEligibleRemaining()).toBe(false)
-    expect(useSelectionSessionStore.getState().drawnSticks()).toEqual([])
+    expect(hasEligibleRemaining()).toBe(false)
+    expect(drawnSticks()).toEqual([])
   })
 
   it('end() clears the session entirely with no persistence involved', async () => {

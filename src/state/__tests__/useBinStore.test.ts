@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from '../../data/db'
+import { getAddCandidates } from '../../domain/rules/addToBin'
 import { useBinStore } from '../useBinStore'
 import { useSticksStore } from '../useSticksStore'
 
@@ -68,7 +69,8 @@ describe('useBinStore', () => {
     const sticks = useSticksStore.getState().sticks
     await useBinStore.getState().confirmDraw(sticks.slice(0, 5).map((s) => s.id))
 
-    expect(useBinStore.getState().getAddCandidates()).toEqual([sticks[5]])
+    const bin = useBinStore.getState().bin!
+    expect(getAddCandidates(sticks, bin)).toEqual([sticks[5]])
 
     await useBinStore.getState().addStick(sticks[5].id)
 
