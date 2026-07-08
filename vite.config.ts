@@ -9,13 +9,13 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {
         name: 'Dinner Sticks',
         short_name: 'Dinner Sticks',
         description: "Draw tonight's meal from your weekly pool of ideas.",
-        theme_color: '#1b1b1f',
-        background_color: '#1b1b1f',
+        theme_color: '#8a3b00',
+        background_color: '#ffffff',
         display: 'standalone',
         start_url: '/',
         icons: [

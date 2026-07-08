@@ -123,6 +123,14 @@ dialog::backdrop {
   border-bottom: 1px solid var(--color-border);
 }
 
+.offline-indicator {
+  padding: var(--space-xs) var(--space-md);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 0.9em;
+  text-align: center;
+}
+
 .stick-actions {
   display: flex;
   flex-wrap: wrap;
