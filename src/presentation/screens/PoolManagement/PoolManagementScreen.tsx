@@ -3,6 +3,7 @@ import { useSticksStore } from '../../../state/useSticksStore'
 import { useNavigationStack } from '../../navigation/useNavigationStack'
 import { EmptyState } from '../shared/EmptyState'
 import { StickEditorForm } from '../shared/StickEditorForm'
+import { ImportExportPanel } from './ImportExportPanel'
 import { StickListItem } from './StickListItem'
 
 type Mode = { kind: 'list' } | { kind: 'add' } | { kind: 'edit'; stickId: string }
@@ -77,6 +78,7 @@ export function PoolManagementScreen() {
           </button>
         </>
       )}
+      <ImportExportPanel />
     </main>
   )
 }
