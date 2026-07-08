@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { createPool } from '../entities/pool'
 import { createStick } from '../entities/stick'
-import { isNonEmptyName, isPoolNameUnique, isStickNameUnique, normalizeName } from '../rules/nameUniqueness'
+import {
+  isNonEmptyName,
+  isPoolNameUnique,
+  isStickNameUnique,
+  normalizeName,
+} from '../rules/nameUniqueness'
 
 describe('normalizeName', () => {
   it('trims and lowercases', () => {

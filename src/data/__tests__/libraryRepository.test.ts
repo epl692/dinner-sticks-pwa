@@ -47,11 +47,7 @@ describe('replaceLibrary', () => {
     await expect(replaceLibrary([newPool], [stickA, stickB])).rejects.toThrow()
 
     // Previous data must be exactly as it was — no partial clear/apply.
-    expect(await db.pools.toArray()).toEqual([
-      { ...existingPool, nameLower: 'dinner' },
-    ])
-    expect(await db.sticks.toArray()).toEqual([
-      { ...existingStick, nameLower: 'tacos' },
-    ])
+    expect(await db.pools.toArray()).toEqual([{ ...existingPool, nameLower: 'dinner' }])
+    expect(await db.sticks.toArray()).toEqual([{ ...existingStick, nameLower: 'tacos' }])
   })
 })

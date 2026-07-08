@@ -35,7 +35,7 @@ describe('weeklyBinRepository', () => {
     expect(fetched?.activeStickIds).toEqual(['stick-1', 'stick-2'])
   })
 
-  it('replaceBinForPool swaps out a differently-id\'d bin, keeping only one per pool', async () => {
+  it("replaceBinForPool swaps out a differently-id'd bin, keeping only one per pool", async () => {
     const pool = createPool('Dinner')
     const first = createWeeklyBin(pool.id, ['stick-1'])
     await upsertBin(first)

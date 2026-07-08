@@ -95,8 +95,8 @@ export function WeeklyDrawScreen() {
       <h1>This week's draw</h1>
       {reducedCount !== null && (
         <p>
-          Your pool only has {reducedCount} meal idea{reducedCount === 1 ? '' : 's'}, so that's
-          what got drawn.
+          Your pool only has {reducedCount} meal idea{reducedCount === 1 ? '' : 's'}, so that's what
+          got drawn.
         </p>
       )}
       <ul>

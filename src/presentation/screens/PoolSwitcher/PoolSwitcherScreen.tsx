@@ -75,7 +75,9 @@ export function PoolSwitcherScreen() {
                 type="button"
                 onClick={() => handleSelect(pool.id)}
                 aria-current={isActive}
-                aria-label={isActive ? `Active pool: ${pool.name}. Tap to switch.` : `Switch to ${pool.name}`}
+                aria-label={
+                  isActive ? `Active pool: ${pool.name}. Tap to switch.` : `Switch to ${pool.name}`
+                }
               >
                 {pool.name}
                 {isActive && <span> (active)</span>}

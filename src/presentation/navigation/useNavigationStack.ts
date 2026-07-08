@@ -13,7 +13,6 @@ interface NavigationState {
 export const useNavigationStack = create<NavigationState>((set) => ({
   stack: ['home'],
   push: (screen) => set((state) => ({ stack: [...state.stack, screen] })),
-  pop: () =>
-    set((state) => (state.stack.length > 1 ? { stack: state.stack.slice(0, -1) } : state)),
+  pop: () => set((state) => (state.stack.length > 1 ? { stack: state.stack.slice(0, -1) } : state)),
   reset: (screen) => set({ stack: [screen] }),
 }))

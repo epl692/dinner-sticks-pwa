@@ -10,8 +10,7 @@ export function OfflineIndicator() {
 
   return (
     <div role="status" className="offline-indicator">
-      You're offline — everything here still works, since all your data is stored on this
-      device.
+      You're offline — everything here still works, since all your data is stored on this device.
     </div>
   )
 }

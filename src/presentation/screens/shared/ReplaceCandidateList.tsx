@@ -8,7 +8,11 @@ interface ReplaceCandidateListProps {
 
 /** Pool sticks not currently in the bin — shared between Replace's Pick-one mode
  * and the Add action (§4.4, §4.4a), since both draw from the same candidate set. */
-export function ReplaceCandidateList({ candidates, onChoose, emptyMessage }: ReplaceCandidateListProps) {
+export function ReplaceCandidateList({
+  candidates,
+  onChoose,
+  emptyMessage,
+}: ReplaceCandidateListProps) {
   if (candidates.length === 0) {
     return <p>{emptyMessage}</p>
   }

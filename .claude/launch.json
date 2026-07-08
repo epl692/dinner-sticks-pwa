@@ -9,8 +9,8 @@
     },
     {
       "name": "dinner-sticks-preview",
-      "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
-      "runtimeArgs": ["node_modules/vite/bin/vite.js", "preview", "--port", "4173"],
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "preview", "--", "--port", "4173"],
       "port": 4173
     }
   ]

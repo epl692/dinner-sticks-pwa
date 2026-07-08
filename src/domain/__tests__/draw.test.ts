@@ -74,9 +74,7 @@ describe('discardAndRedraw', () => {
 
     expect(session.drawnStickIds).not.toContain(sticks[0].id)
     expect(session.drawnStickIds).not.toContain(sticks[1].id)
-    expect(session.discardedStickIds).toEqual(
-      expect.arrayContaining([sticks[0].id, sticks[1].id]),
-    )
+    expect(session.discardedStickIds).toEqual(expect.arrayContaining([sticks[0].id, sticks[1].id]))
   })
 
   it('shrinks the drawn set with no redraw once every eligible stick is exhausted', () => {

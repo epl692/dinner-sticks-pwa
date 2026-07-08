@@ -28,17 +28,33 @@ export function StickActionsMenu({ stickId, stickName }: StickActionsMenuProps) 
 
   return (
     <div className="stick-actions">
-      <button type="button" onClick={handleReplaceRandom} aria-label={`Replace ${stickName} with a random meal`}>
+      <button
+        type="button"
+        onClick={handleReplaceRandom}
+        aria-label={`Replace ${stickName} with a random meal`}
+      >
         Replace (random)
       </button>
-      <button type="button" onClick={() => setPickOneOpen(true)} aria-label={`Replace ${stickName}, choosing which meal`}>
+      <button
+        type="button"
+        onClick={() => setPickOneOpen(true)}
+        aria-label={`Replace ${stickName}, choosing which meal`}
+      >
         Replace (pick one)
       </button>
-      <button type="button" onClick={() => setConfirmRemoveOpen(true)} aria-label={`Remove ${stickName} from this week's plan`}>
+      <button
+        type="button"
+        onClick={() => setConfirmRemoveOpen(true)}
+        aria-label={`Remove ${stickName} from this week's plan`}
+      >
         Remove
       </button>
 
-      <ReplacePickOneDialog open={pickOneOpen} stickId={stickId} onClose={() => setPickOneOpen(false)} />
+      <ReplacePickOneDialog
+        open={pickOneOpen}
+        stickId={stickId}
+        onClose={() => setPickOneOpen(false)}
+      />
 
       <ConfirmDialog
         open={confirmRemoveOpen}

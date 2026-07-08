@@ -46,7 +46,11 @@ export function ConfirmDialog({
         <button type="button" onClick={onCancel}>
           {cancelLabel}
         </button>
-        <button type="button" className={destructive ? 'destructive' : undefined} onClick={onConfirm}>
+        <button
+          type="button"
+          className={destructive ? 'destructive' : undefined}
+          onClick={onConfirm}
+        >
           {confirmLabel}
         </button>
       </div>

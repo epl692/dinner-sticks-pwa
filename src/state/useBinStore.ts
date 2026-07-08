@@ -3,7 +3,10 @@ import { createWeeklyBin, type WeeklyBin } from '../domain/entities/weeklyBin'
 import { addStickToBin as addStickToBinRule } from '../domain/rules/addToBin'
 import { markStickDone } from '../domain/rules/markDone'
 import { removeStickFromBin } from '../domain/rules/removeFromBin'
-import { replaceRandomCandidate, replaceWithChoice as replaceWithChoiceRule } from '../domain/rules/replace'
+import {
+  replaceRandomCandidate,
+  replaceWithChoice as replaceWithChoiceRule,
+} from '../domain/rules/replace'
 import * as weeklyBinRepository from '../data/repositories/weeklyBinRepository'
 import { useSticksStore } from './useSticksStore'
 

@@ -39,7 +39,10 @@ describe('addStickToBin', () => {
   it('is not capped at 5 — the bin can grow past the original draw size', () => {
     const pool = createPool('Dinner')
     const sticks = Array.from({ length: 7 }, (_, i) => createStick(pool.id, `Meal ${i}`))
-    let bin = createWeeklyBin(pool.id, sticks.slice(0, 5).map((s) => s.id))
+    let bin = createWeeklyBin(
+      pool.id,
+      sticks.slice(0, 5).map((s) => s.id),
+    )
 
     bin = addStickToBin(bin, sticks[5].id)
     bin = addStickToBin(bin, sticks[6].id)

@@ -38,7 +38,9 @@ export const usePoolsStore = create<PoolsState>((set, get) => ({
     const pools = await poolRepository.getAllPools()
     const currentActive = get().activePoolId
     const activePoolId =
-      currentActive && pools.some((p) => p.id === currentActive) ? currentActive : (pools[0]?.id ?? null)
+      currentActive && pools.some((p) => p.id === currentActive)
+        ? currentActive
+        : (pools[0]?.id ?? null)
     set({ pools, activePoolId, loaded: true })
     if (activePoolId) {
       await loadActivePoolData(activePoolId)

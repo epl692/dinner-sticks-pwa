@@ -12,7 +12,11 @@ export function getReplaceCandidates(poolSticks: Stick[], bin: WeeklyBin): Stick
   return getSticksNotInBin(poolSticks, bin)
 }
 
-function replaceStickInBin(bin: WeeklyBin, stickIdToReplace: string, replacementId: string): WeeklyBin {
+function replaceStickInBin(
+  bin: WeeklyBin,
+  stickIdToReplace: string,
+  replacementId: string,
+): WeeklyBin {
   const index = bin.activeStickIds.indexOf(stickIdToReplace)
   if (index === -1) return bin
   const activeStickIds = [...bin.activeStickIds]
