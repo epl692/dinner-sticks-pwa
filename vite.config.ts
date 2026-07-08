@@ -4,7 +4,10 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  // Built assets are hosted at https://epl692.github.io/tools/dinner-sticks/
+  // (see epl692.github.io/static/tools/dinner-sticks/); keep the dev server at root.
+  base: command === 'build' ? '/tools/dinner-sticks/' : '/',
   plugins: [
     react(),
     VitePWA({
@@ -17,7 +20,8 @@ export default defineConfig({
         theme_color: '#8a3b00',
         background_color: '#ffffff',
         display: 'standalone',
-        start_url: '/',
+        // start_url/scope default to `base` above, which resolves to the
+        // deployed subpath at build time.
         icons: [
           {
             src: 'icons/icon-192.png',
@@ -47,4 +51,4 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setupTests.ts'],
   },
-})
+}))
