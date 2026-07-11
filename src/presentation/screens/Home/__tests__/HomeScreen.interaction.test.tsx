@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { db } from '../../../../data/db'
@@ -63,8 +63,13 @@ describe('HomeScreen interaction', () => {
 
     render(<HomeScreen />)
 
-    await user.click(screen.getByRole('button', { name: "Remove Tacos from this week's plan" }))
-    await user.click(await screen.findByRole('button', { name: 'Remove' }))
+    await user.click(screen.getByRole('button', { name: 'Tacos actions' }))
+    const menu = await screen.findByRole('dialog')
+    await user.click(
+      within(menu).getByRole('button', { name: "Remove Tacos from this week's plan" }),
+    )
+    const confirmDialog = await screen.findByRole('dialog')
+    await user.click(within(confirmDialog).getByRole('button', { name: 'Remove' }))
 
     await waitFor(() => {
       expect(useBinStore.getState().bin?.activeStickIds).toEqual([])

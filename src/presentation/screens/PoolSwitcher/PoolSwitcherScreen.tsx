@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { usePoolsStore } from '../../../state/usePoolsStore'
 import { useNavigationStack } from '../../navigation/useNavigationStack'
 import { ConfirmDialog } from '../shared/ConfirmDialog'
+import { OverflowMenu } from '../shared/OverflowMenu'
 import { AddPoolForm } from './AddPoolForm'
 
 export function PoolSwitcherScreen() {
@@ -70,30 +71,39 @@ export function PoolSwitcherScreen() {
           }
 
           return (
-            <li key={pool.id}>
+            <li key={pool.id} className="single-line">
               <button
                 type="button"
+                className="row-primary"
                 onClick={() => handleSelect(pool.id)}
                 aria-current={isActive}
                 aria-label={
                   isActive ? `Active pool: ${pool.name}. Tap to switch.` : `Switch to ${pool.name}`
                 }
               >
-                {pool.name}
-                {isActive && <span> (active)</span>}
+                <span className="row-primary-name">{pool.name}</span>
+                {isActive && <span className="row-fixed"> (active)</span>}
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setRenamingId(pool.id)
-                  setRenameValue(pool.name)
-                }}
-              >
-                Rename
-              </button>
-              <button type="button" onClick={() => setConfirmDeleteId(pool.id)}>
-                Delete
-              </button>
+              <OverflowMenu
+                triggerAriaLabel={`${pool.name} actions`}
+                title={`${pool.name} actions`}
+                items={[
+                  {
+                    key: 'rename',
+                    label: 'Rename',
+                    onSelect: () => {
+                      setRenamingId(pool.id)
+                      setRenameValue(pool.name)
+                    },
+                  },
+                  {
+                    key: 'delete',
+                    label: 'Delete',
+                    destructive: true,
+                    onSelect: () => setConfirmDeleteId(pool.id),
+                  },
+                ]}
+              />
             </li>
           )
         })}
