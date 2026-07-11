@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Stick } from '../../../domain/entities/stick'
 import { ConfirmDialog } from '../shared/ConfirmDialog'
+import { OverflowMenu } from '../shared/OverflowMenu'
 
 interface StickListItemProps {
   stick: Stick
@@ -12,14 +13,23 @@ export function StickListItem({ stick, onEdit, onDelete }: StickListItemProps) {
   const [confirmOpen, setConfirmOpen] = useState(false)
 
   return (
-    <li>
-      <span aria-label={`${stick.name}, meal idea`}>{stick.name}</span>
-      <button type="button" onClick={onEdit}>
-        Edit
-      </button>
-      <button type="button" onClick={() => setConfirmOpen(true)}>
-        Delete
-      </button>
+    <li className="single-line">
+      <span className="row-primary row-primary-name" aria-label={`${stick.name}, meal idea`}>
+        {stick.name}
+      </span>
+      <OverflowMenu
+        triggerAriaLabel={`${stick.name} actions`}
+        title={`${stick.name} actions`}
+        items={[
+          { key: 'edit', label: 'Edit', onSelect: onEdit },
+          {
+            key: 'delete',
+            label: 'Delete',
+            destructive: true,
+            onSelect: () => setConfirmOpen(true),
+          },
+        ]}
+      />
 
       <ConfirmDialog
         open={confirmOpen}

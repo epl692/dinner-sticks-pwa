@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useBinStore } from '../../../state/useBinStore'
 import { useNoticeStore } from '../../../state/useNoticeStore'
 import { ConfirmDialog } from '../shared/ConfirmDialog'
+import { OverflowMenu } from '../shared/OverflowMenu'
 import { ReplacePickOneDialog } from '../shared/ReplacePickOneDialog'
 
 interface StickActionsMenuProps {
@@ -27,28 +28,32 @@ export function StickActionsMenu({ stickId, stickName }: StickActionsMenuProps) 
   }
 
   return (
-    <div className="stick-actions">
-      <button
-        type="button"
-        onClick={handleReplaceRandom}
-        aria-label={`Replace ${stickName} with a random meal`}
-      >
-        Replace (random)
-      </button>
-      <button
-        type="button"
-        onClick={() => setPickOneOpen(true)}
-        aria-label={`Replace ${stickName}, choosing which meal`}
-      >
-        Replace (pick one)
-      </button>
-      <button
-        type="button"
-        onClick={() => setConfirmRemoveOpen(true)}
-        aria-label={`Remove ${stickName} from this week's plan`}
-      >
-        Remove
-      </button>
+    <>
+      <OverflowMenu
+        triggerAriaLabel={`${stickName} actions`}
+        title={`${stickName} actions`}
+        items={[
+          {
+            key: 'replace-random',
+            label: 'Replace (random)',
+            ariaLabel: `Replace ${stickName} with a random meal`,
+            onSelect: handleReplaceRandom,
+          },
+          {
+            key: 'replace-pick-one',
+            label: 'Replace (pick one)',
+            ariaLabel: `Replace ${stickName}, choosing which meal`,
+            onSelect: () => setPickOneOpen(true),
+          },
+          {
+            key: 'remove',
+            label: 'Remove',
+            ariaLabel: `Remove ${stickName} from this week's plan`,
+            destructive: true,
+            onSelect: () => setConfirmRemoveOpen(true),
+          },
+        ]}
+      />
 
       <ReplacePickOneDialog
         open={pickOneOpen}
@@ -68,6 +73,6 @@ export function StickActionsMenu({ stickId, stickName }: StickActionsMenuProps) 
         }}
         onCancel={() => setConfirmRemoveOpen(false)}
       />
-    </div>
+    </>
   )
 }
