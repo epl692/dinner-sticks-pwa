@@ -131,9 +131,45 @@ dialog::backdrop {
   text-align: center;
 }
 
-.stick-actions {
-  display: flex;
-  flex-wrap: wrap;
+/* Rows redesigned to fit on one line (Home bin list, Pool Management list,
+   Pool Switcher list) — opt-in, doesn't affect other li usages. */
+li.single-line {
+  flex-wrap: nowrap;
+}
+
+.row-primary {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
   gap: var(--space-xs);
+}
+
+.row-primary-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.row-fixed {
+  flex: 0 0 auto;
+}
+
+.overflow-menu-trigger {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.overflow-menu-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.overflow-menu-items button {
   width: 100%;
+  justify-content: flex-start;
+  text-align: left;
 }

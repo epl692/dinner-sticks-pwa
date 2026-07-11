@@ -121,6 +121,33 @@ Pool ──────────────────────── St
 | Weekly Bin        | doneStickIds            | Disjoint from activeStickIds                                                     |
 | Selection Session | drawnStickIds           | Max 5; never includes anything in discardedStickIds                              |
 
+### 3a. Save / Export File Format (concrete)
+
+The tables above describe the data model in platform-agnostic terms. This subsection records the concrete, current implementation of both persistence formats, for reference — it documents the current build, not a portability guarantee across future schema versions.
+
+**Local storage (IndexedDB via Dexie), single schema `version(1)`, no migrations yet:**
+
+| Table        | Fields                                              | Notes                                                                                   |
+| ------------ | ---------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `pools`      | `id`, `name`, `nameLower`, `createdAt`               | `id` is the domain UUID itself — there is no separate autoincrement key. `nameLower` is a storage-only field (case-insensitive uniqueness index), stripped before the entity reaches the domain/UI layers. |
+| `sticks`     | `id`, `poolId`, `name`, `nameLower`, `createdAt`     | Same `id`/`nameLower` notes as `pools`. Unique compound index on `[poolId, nameLower]` enforces per-pool name uniqueness (§3). |
+| `weeklyBins` | `id`, `poolId`, `activeStickIds`, `doneStickIds`, `createdAt`, `updatedAt` | Stored as-is — identical shape to the domain `WeeklyBin` type, no storage-only fields. Unique index on `poolId` (one bin per pool). |
+
+**Export/import JSON file** (§4.6): a single top-level object —
+
+```json
+{
+  "schemaVersion": 1,
+  "pools": [{ "name": "Dinner" }, { "name": "Lunch" }],
+  "sticks": [
+    { "poolName": "Dinner", "name": "Tacos" },
+    { "poolName": "Lunch", "name": "Soup" }
+  ]
+}
+```
+
+`schemaVersion` is a plain integer (currently always `1`), present specifically to allow future format changes to be recognized. **Known gap, left as-is**: today only the field's *presence and type* (`number`) are validated — its *value* is never compared against the currently-supported version, so any number currently passes validation. A file claiming a future, incompatible `schemaVersion` would be accepted rather than rejected.
+
 ---
 
 ## 4. Core Functional Requirements
@@ -183,7 +210,7 @@ At any time after a bin exists, the user can deliberately add one more stick to 
 
 ### 4.6 Import and export the meal library
 
-Since the app is deliberately single-device with no sync (§7), the user can move their meal ideas between separate instances (e.g. phone and desktop) by hand, via a JSON file:
+Since the app is deliberately single-device with no sync (§7), the user can move their meal ideas between separate instances (e.g. phone and desktop) by hand, via a JSON file (see §3a for the concrete file/DB schemas):
 
 - **Export** produces a single JSON file containing every pool and every stick within it (names only — no ids, timestamps, or weekly bin state, since bins are transient weekly data that doesn't make sense to carry between instances). This is a non-destructive, immediate action requiring no confirmation.
 - **Import** reads a JSON file the user selects and **replaces** the current instance's entire meal library with its contents: all existing pools and sticks are removed and replaced by what's in the file, and — because sticks are being wholesale replaced — any existing weekly bin (on any pool) is cleared as part of the same operation rather than left referencing sticks that may no longer exist.
@@ -271,13 +298,15 @@ Target: WCAG 2.1 AA.
   | ---------------------- | ----------------------------------------------------------------------------- |
   | Random pick action     | "Pick a random meal from this week's plan"                                    |
   | Stick list item (pool) | "{name}, meal idea"                                                           |
-  | Bin stick item         | "{name}" plus a state hint: "in this week's plan" or "done"                   |
+  | Bin stick item         | "{name}" plus a state hint: "in this week's plan" or "done"¹                  |
   | Done action            | "Mark {name} as done and remove from this week's plan"                        |
   | Discard action (draw)  | "Discard {name} and draw a replacement"                                       |
   | Active pool indicator  | "Active pool: {name}. Tap to switch."                                         |
   | Add-to-bin action      | "Add a meal to this week's plan"                                              |
   | Export action          | "Export meal library as a file"                                               |
   | Import action          | "Import meal library from a file — replaces all current pools and meal ideas" |
+
+  ¹ Today only the "in this week's plan" variant is ever actually rendered: per §4.3, marking a stick "Done" removes it from the bin's active view entirely rather than showing it with a "done" label. The "done" hint format is reserved for a possible future surface (e.g. a done-items view) that doesn't exist yet.
 - **State never conveyed by color alone**: e.g. a highlighted/selected stick must be distinguishable via more than background color (also via a text/label state change).
 - **Confirmation before destructive actions**: deleting a stick, deleting a pool, removing a bin stick, and importing a library file (which replaces the entire local meal library) must all require an explicit confirmation step before executing.
 - **Keyboard/focus navigation**: all interactive elements must be reachable and operable via keyboard/focus traversal alone, in a logical (visual top-to-bottom, left-to-right) order.

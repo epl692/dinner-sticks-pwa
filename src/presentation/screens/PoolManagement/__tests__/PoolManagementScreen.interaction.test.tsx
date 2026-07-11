@@ -53,9 +53,11 @@ describe('PoolManagementScreen interaction', () => {
     await useSticksStore.getState().addStick('Tacos')
     render(<PoolManagementScreen />)
 
-    await user.click(screen.getByRole('button', { name: 'Delete' }))
-    const dialog = await screen.findByRole('dialog')
-    await user.click(within(dialog).getByRole('button', { name: 'Delete' }))
+    await user.click(screen.getByRole('button', { name: 'Tacos actions' }))
+    const menu = await screen.findByRole('dialog')
+    await user.click(within(menu).getByRole('button', { name: 'Delete' }))
+    const confirmDialog = await screen.findByRole('dialog')
+    await user.click(within(confirmDialog).getByRole('button', { name: 'Delete' }))
 
     await waitFor(async () => {
       expect(await db.sticks.count()).toBe(0)
