@@ -14,7 +14,7 @@ export default defineConfig({
         name: 'Dinner Sticks',
         short_name: 'Dinner Sticks',
         description: "Draw tonight's meal from your weekly pool of ideas.",
-        theme_color: '#8a3b00',
+        theme_color: '#5B21B6',
         background_color: '#ffffff',
         display: 'standalone',
         start_url: '/',

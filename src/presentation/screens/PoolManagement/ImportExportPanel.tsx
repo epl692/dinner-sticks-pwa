@@ -1,3 +1,4 @@
+import { Download, Upload } from 'lucide-react'
 import { useRef, useState, type ChangeEvent } from 'react'
 import { useImportExportStore } from '../../../state/useImportExportStore'
 import { useNavigationStack } from '../../navigation/useNavigationStack'
@@ -45,10 +46,12 @@ export function ImportExportPanel() {
   return (
     <section>
       <h2>Meal library</h2>
-      <button type="button" onClick={handleExport} disabled={exporting}>
+      <button type="button" className="icon-button" onClick={handleExport} disabled={exporting}>
+        <Download aria-hidden="true" size="1.1em" />
         Export meal library as a file
       </button>
-      <button type="button" onClick={() => fileInputRef.current?.click()}>
+      <button type="button" className="icon-button" onClick={() => fileInputRef.current?.click()}>
+        <Upload aria-hidden="true" size="1.1em" />
         Import meal library from a file — replaces all current pools and meal ideas
       </button>
       <input

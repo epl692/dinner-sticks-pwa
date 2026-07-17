@@ -1,9 +1,11 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { MoreVertical } from 'lucide-react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 
 export interface OverflowMenuItem {
   key: string
   label: string
   ariaLabel?: string
+  icon?: ReactNode
   onSelect: () => void
   destructive?: boolean
 }
@@ -44,7 +46,7 @@ export function OverflowMenu({ triggerAriaLabel, title, items }: OverflowMenuPro
         aria-expanded={open}
         onClick={() => setOpen(true)}
       >
-        ⋮
+        <MoreVertical aria-hidden="true" />
       </button>
       <dialog
         ref={ref}
@@ -58,13 +60,14 @@ export function OverflowMenu({ triggerAriaLabel, title, items }: OverflowMenuPro
             <button
               key={item.key}
               type="button"
-              className={item.destructive ? 'destructive' : undefined}
+              className={`icon-button${item.destructive ? ' destructive' : ''}`}
               aria-label={item.ariaLabel}
               onClick={() => {
                 item.onSelect()
                 setOpen(false)
               }}
             >
+              {item.icon}
               {item.label}
             </button>
           ))}

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createPool } from '../entities/pool'
 import { createStick } from '../entities/stick'
 import { createWeeklyBin } from '../entities/weeklyBin'
-import { addStickToBin, getAddCandidates } from '../rules/addToBin'
+import { addRandomCandidate, addStickToBin, getAddCandidates } from '../rules/addToBin'
 
 describe('getAddCandidates', () => {
   it('shares the same not-in-bin candidate logic as Replace', () => {
@@ -70,5 +70,43 @@ describe('addStickToBin', () => {
 
     const overlap = result.activeStickIds.filter((id) => result.doneStickIds.includes(id))
     expect(overlap).toEqual([])
+  })
+})
+
+describe('addRandomCandidate', () => {
+  it('appends a stick drawn from the not-in-bin candidate set', () => {
+    const pool = createPool('Dinner')
+    const active = createStick(pool.id, 'Tacos')
+    const candidate = createStick(pool.id, 'Soup')
+    const bin = createWeeklyBin(pool.id, [active.id])
+
+    const result = addRandomCandidate([active, candidate], bin)
+
+    expect(result).not.toBeNull()
+    expect(result!.activeStickIds).toEqual([active.id, candidate.id])
+  })
+
+  it('returns null and leaves the bin unchanged when no candidates are available', () => {
+    const pool = createPool('Dinner')
+    const active = createStick(pool.id, 'Tacos')
+    const bin = createWeeklyBin(pool.id, [active.id])
+
+    const result = addRandomCandidate([active], bin)
+
+    expect(result).toBeNull()
+  })
+
+  it('is not capped at 5 — the bin can grow past the original draw size', () => {
+    const pool = createPool('Dinner')
+    const sticks = Array.from({ length: 7 }, (_, i) => createStick(pool.id, `Meal ${i}`))
+    let bin = createWeeklyBin(
+      pool.id,
+      sticks.slice(0, 5).map((s) => s.id),
+    )
+
+    bin = addRandomCandidate(sticks, bin)!
+    bin = addRandomCandidate(sticks, bin)!
+
+    expect(bin.activeStickIds).toHaveLength(7)
   })
 })

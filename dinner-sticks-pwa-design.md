@@ -127,11 +127,11 @@ The tables above describe the data model in platform-agnostic terms. This subsec
 
 **Local storage (IndexedDB via Dexie), single schema `version(1)`, no migrations yet:**
 
-| Table        | Fields                                              | Notes                                                                                   |
-| ------------ | ---------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `pools`      | `id`, `name`, `nameLower`, `createdAt`               | `id` is the domain UUID itself — there is no separate autoincrement key. `nameLower` is a storage-only field (case-insensitive uniqueness index), stripped before the entity reaches the domain/UI layers. |
-| `sticks`     | `id`, `poolId`, `name`, `nameLower`, `createdAt`     | Same `id`/`nameLower` notes as `pools`. Unique compound index on `[poolId, nameLower]` enforces per-pool name uniqueness (§3). |
-| `weeklyBins` | `id`, `poolId`, `activeStickIds`, `doneStickIds`, `createdAt`, `updatedAt` | Stored as-is — identical shape to the domain `WeeklyBin` type, no storage-only fields. Unique index on `poolId` (one bin per pool). |
+| Table        | Fields                                                                     | Notes                                                                                                                                                                                                      |
+| ------------ | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pools`      | `id`, `name`, `nameLower`, `createdAt`                                     | `id` is the domain UUID itself — there is no separate autoincrement key. `nameLower` is a storage-only field (case-insensitive uniqueness index), stripped before the entity reaches the domain/UI layers. |
+| `sticks`     | `id`, `poolId`, `name`, `nameLower`, `createdAt`                           | Same `id`/`nameLower` notes as `pools`. Unique compound index on `[poolId, nameLower]` enforces per-pool name uniqueness (§3).                                                                             |
+| `weeklyBins` | `id`, `poolId`, `activeStickIds`, `doneStickIds`, `createdAt`, `updatedAt` | Stored as-is — identical shape to the domain `WeeklyBin` type, no storage-only fields. Unique index on `poolId` (one bin per pool).                                                                        |
 
 **Export/import JSON file** (§4.6): a single top-level object —
 
@@ -146,7 +146,7 @@ The tables above describe the data model in platform-agnostic terms. This subsec
 }
 ```
 
-`schemaVersion` is a plain integer (currently always `1`), present specifically to allow future format changes to be recognized. **Known gap, left as-is**: today only the field's *presence and type* (`number`) are validated — its *value* is never compared against the currently-supported version, so any number currently passes validation. A file claiming a future, incompatible `schemaVersion` would be accepted rather than rejected.
+`schemaVersion` is a plain integer (currently always `1`), present specifically to allow future format changes to be recognized. **Known gap, left as-is**: today only the field's _presence and type_ (`number`) are validated — its _value_ is never compared against the currently-supported version, so any number currently passes validation. A file claiming a future, incompatible `schemaVersion` would be accepted rather than rejected.
 
 ---
 
@@ -194,10 +194,14 @@ Additionally, the user can **add a new stick to the bin** without replacing or r
 
 ### 4.4a Add a stick to the bin (grow beyond the original draw)
 
-At any time after a bin exists, the user can deliberately add one more stick to it, on top of whatever it already contains:
+At any time after a bin exists, the user can deliberately add one more stick to it, on top of whatever it already contains, choosing either:
+
+- **Shuffle (random)**: the system randomly draws one stick from the pool's sticks not currently in the bin and appends it to the bin's active sticks.
+- **Pick one**: the system shows the same kind of candidate list used by Replace's Pick-one mode — the pool's sticks not currently in the bin (i.e. not already active or done this week). The user taps the one they want, and it's appended to the bin's active sticks.
+
+Both modes share these properties:
 
 - This is a bin-level action (it doesn't target an existing bin entry the way Replace/Remove do), offered from the Home screen alongside — but separate from — the per-stick Replace/Remove actions.
-- The system shows the same kind of candidate list used by Replace's Pick-one mode: the pool's sticks not currently in the bin (i.e. not already active or done this week). The user taps the one they want, and it's appended to the bin's active sticks.
 - Unlike the initial weekly draw, this operation is **not capped at 5** — the bin is allowed to exceed 5 active sticks once the user has deliberately grown it. The 5-stick cap applies only to the random draw described in §4.2.
 - If every pool stick is already in the bin (no candidates available), the user is told so and the bin is left unchanged — the same failure mode as Replace in §4.4.
 
@@ -229,7 +233,7 @@ Navigation is a simple forward/back stack — no deep linking is required. All s
 
 - Shows the active pool's name (also acts as the entry point to the Pool Switcher).
 - Shows the active pool's current bin: a list of its active (not-done) sticks, or an empty-state prompt ("No meals planned this week" + a direct action to start a draw) if there are none.
-- Provides: a one-tap random pick among the currently shown sticks (highlights one, doesn't persist anything); tapping a specific stick to select it manually; an action to start a new weekly draw (only relevant/shown once a bin has content); an action to open pool management (add/edit/delete meal ideas); a bin-level "Add a meal to this week's plan" action (per §4.4a) offered whenever the pool has at least one stick not already in the bin.
+- Provides: a one-tap random pick among the currently shown sticks (highlights one, doesn't persist anything); tapping a specific stick to select it manually; an action to start a new weekly draw (only relevant/shown once a bin has content); an action to open pool management (add/edit/delete meal ideas); a bin-level "Add a meal to this week's plan" action (offering Shuffle or Pick-one, per §4.4a) offered whenever the pool has at least one stick not already in the bin.
 - Selecting a stick (random or manual) surfaces a "Done" action for that stick.
 - Per-stick, secondary actions (e.g. via long-press or an overflow menu): **Replace** (offers Random or Pick-one, per §4.4) and **Remove** (with a confirmation step, since it's a destructive-feeling action, even though the idea survives in the pool).
 
@@ -273,7 +277,7 @@ These are the exact mechanics that must be reproduced precisely, since subtle de
 5. **Stale references**: a bin may reference a stick that no longer exists in its pool (because it was deleted while still in the bin). Such references are simply excluded when displaying the bin's contents; they are not proactively cleaned up, and they're never eligible for future draws or replacements.
 6. **Name uniqueness scopes**: pool names are unique **globally** (case-insensitive); stick names are unique **per pool** (case-insensitive) — the same stick name is allowed to exist independently in two different pools.
 7. **Last-pool safeguard**: deleting a pool that is the only one remaining creates a fresh empty "Dinner" pool as part of the same operation, so the app is never left with zero pools.
-8. **Add to bin**: candidates are the pool's sticks not currently in the bin (active or done) — the same candidate set Replace's Pick-one mode uses. Adding appends the chosen stick to the bin's active sticks; the resulting bin is not subject to the 5-stick cap, since that cap applies only to the initial random draw (§4.2), not to bins the user has deliberately edited.
+8. **Add to bin**: candidates are the pool's sticks not currently in the bin (active or done) — the same candidate set Replace's Pick-one mode uses. "Shuffle" mode draws uniformly from those candidates, the same way Replace's Random mode does; "Pick one" mode lets the user choose directly. Either way, adding appends the chosen stick to the bin's active sticks; the resulting bin is not subject to the 5-stick cap, since that cap applies only to the initial random draw (§4.2), not to bins the user has deliberately edited.
 9. **Import replace**: importing a library file is all-or-nothing — the file is fully validated (shape, at least one pool, no duplicate names) before anything is applied; on success, every existing pool, stick, and weekly bin in the instance is replaced/cleared in a single operation; on failure, nothing changes and the previous library is left exactly as it was.
 
 ---
@@ -294,6 +298,7 @@ Target: WCAG 2.1 AA.
 - **Contrast**: all text/icon-against-background pairs must meet ≥4.5:1 for normal text and ≥3:1 for large text or standalone icons.
 - **Touch targets**: every interactive control must have a minimum hit area of 48×48 (device-independent units).
 - **Screen reader support**: every interactive element — including icon-only controls — must expose a meaningful accessible name/label, not just a visual icon. Representative labels to preserve:
+
   | Element                | Accessible label                                                              |
   | ---------------------- | ----------------------------------------------------------------------------- |
   | Random pick action     | "Pick a random meal from this week's plan"                                    |
@@ -303,10 +308,12 @@ Target: WCAG 2.1 AA.
   | Discard action (draw)  | "Discard {name} and draw a replacement"                                       |
   | Active pool indicator  | "Active pool: {name}. Tap to switch."                                         |
   | Add-to-bin action      | "Add a meal to this week's plan"                                              |
+  | Add-to-bin shuffle     | "Add a random meal to this week's plan"                                       |
   | Export action          | "Export meal library as a file"                                               |
   | Import action          | "Import meal library from a file — replaces all current pools and meal ideas" |
 
   ¹ Today only the "in this week's plan" variant is ever actually rendered: per §4.3, marking a stick "Done" removes it from the bin's active view entirely rather than showing it with a "done" label. The "done" hint format is reserved for a possible future surface (e.g. a done-items view) that doesn't exist yet.
+
 - **State never conveyed by color alone**: e.g. a highlighted/selected stick must be distinguishable via more than background color (also via a text/label state change).
 - **Confirmation before destructive actions**: deleting a stick, deleting a pool, removing a bin stick, and importing a library file (which replaces the entire local meal library) must all require an explicit confirmation step before executing.
 - **Keyboard/focus navigation**: all interactive elements must be reachable and operable via keyboard/focus traversal alone, in a logical (visual top-to-bottom, left-to-right) order.

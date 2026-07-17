@@ -1,3 +1,4 @@
+import { ListChecks, Shuffle, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useBinStore } from '../../../state/useBinStore'
 import { useNoticeStore } from '../../../state/useNoticeStore'
@@ -35,20 +36,23 @@ export function StickActionsMenu({ stickId, stickName }: StickActionsMenuProps) 
         items={[
           {
             key: 'replace-random',
-            label: 'Replace (random)',
+            label: 'Replace (shuffle)',
             ariaLabel: `Replace ${stickName} with a random meal`,
+            icon: <Shuffle aria-hidden="true" size="1.1em" />,
             onSelect: handleReplaceRandom,
           },
           {
             key: 'replace-pick-one',
             label: 'Replace (pick one)',
             ariaLabel: `Replace ${stickName}, choosing which meal`,
+            icon: <ListChecks aria-hidden="true" size="1.1em" />,
             onSelect: () => setPickOneOpen(true),
           },
           {
             key: 'remove',
             label: 'Remove',
             ariaLabel: `Remove ${stickName} from this week's plan`,
+            icon: <Trash2 aria-hidden="true" size="1.1em" />,
             destructive: true,
             onSelect: () => setConfirmRemoveOpen(true),
           },

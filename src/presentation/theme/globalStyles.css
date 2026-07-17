@@ -158,8 +158,19 @@ li.single-line {
 }
 
 .overflow-menu-trigger {
-  font-size: 1.1rem;
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.icon-button svg {
+  flex-shrink: 0;
 }
 
 .overflow-menu-items {
