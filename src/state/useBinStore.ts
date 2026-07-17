@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { createWeeklyBin, type WeeklyBin } from '../domain/entities/weeklyBin'
-import { addStickToBin as addStickToBinRule } from '../domain/rules/addToBin'
+import { addRandomCandidate, addStickToBin as addStickToBinRule } from '../domain/rules/addToBin'
 import { markStickDone } from '../domain/rules/markDone'
 import { removeStickFromBin } from '../domain/rules/removeFromBin'
 import {
@@ -23,6 +23,8 @@ interface BinState {
   replaceWithChoice: (stickId: string, chosenStickId: string) => Promise<void>
   /** Uncapped bin growth (§4.4a). */
   addStick: (stickId: string) => Promise<void>
+  /** Random mode of Add. Returns false (no-op) when no candidate is available (§4.4a). */
+  addRandom: () => Promise<boolean>
 }
 
 // Candidate lists (getReplaceCandidates/getAddCandidates from the domain layer)
@@ -90,5 +92,16 @@ export const useBinStore = create<BinState>((set, get) => ({
     const updated = addStickToBinRule(bin, stickId)
     await weeklyBinRepository.upsertBin(updated)
     set({ bin: updated })
+  },
+
+  addRandom: async () => {
+    const { bin } = get()
+    if (!bin) return false
+    const poolSticks = useSticksStore.getState().sticks
+    const updated = addRandomCandidate(poolSticks, bin)
+    if (!updated) return false
+    await weeklyBinRepository.upsertBin(updated)
+    set({ bin: updated })
+    return true
   },
 }))

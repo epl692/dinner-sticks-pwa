@@ -90,6 +90,32 @@ describe('useBinStore', () => {
     expect(useBinStore.getState().bin?.activeStickIds).toEqual([stick.id])
   })
 
+  it('addRandom grows the bin uncapped, using the shared candidate set', async () => {
+    await useSticksStore.getState().loadForPool(POOL_ID)
+    await seedSticks(['A', 'B', 'C', 'D', 'E', 'F'])
+    await useBinStore.getState().loadForPool(POOL_ID)
+    const sticks = useSticksStore.getState().sticks
+    await useBinStore.getState().confirmDraw(sticks.slice(0, 5).map((s) => s.id))
+
+    const result = await useBinStore.getState().addRandom()
+
+    expect(result).toBe(true)
+    expect(useBinStore.getState().bin?.activeStickIds).toHaveLength(6)
+  })
+
+  it('addRandom returns false and leaves the bin unchanged with no candidates', async () => {
+    await useSticksStore.getState().loadForPool(POOL_ID)
+    await seedSticks(['Tacos'])
+    await useBinStore.getState().loadForPool(POOL_ID)
+    const [stick] = useSticksStore.getState().sticks
+    await useBinStore.getState().confirmDraw([stick.id])
+
+    const result = await useBinStore.getState().addRandom()
+
+    expect(result).toBe(false)
+    expect(useBinStore.getState().bin?.activeStickIds).toEqual([stick.id])
+  })
+
   it('removeStick drops without replacement, leaving the pool stick list intact', async () => {
     await useSticksStore.getState().loadForPool(POOL_ID)
     await seedSticks(['Tacos'])
