@@ -69,7 +69,7 @@ export function ImportExportPanel() {
       <ConfirmDialog
         open={pendingFile !== null}
         title="Replace your meal library?"
-        description="This will replace all pools and meal ideas currently on this device with the contents of the imported file. This cannot be undone."
+        description="This will replace all pools and meal ideas your whole family shares with the contents of the imported file, on every device. This cannot be undone."
         confirmLabel="Replace"
         destructive
         onConfirm={handleConfirmImport}

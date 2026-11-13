@@ -2,16 +2,40 @@
 
 A installable web app for picking what's for dinner. Add meal ideas to a pool, draw a random weekly plan (up to 5 at a time), swap or add to it as the week goes, and mark meals done as you cook them.
 
-It's a client-only Progressive Web App — no backend, no accounts. All data (meal ideas, weekly plans) is stored locally in the browser via IndexedDB, so it works offline once installed.
+It's an offline-first Progressive Web App that your whole family can share. Every device keeps a full local copy (IndexedDB), so it works offline once installed, and changes sync between family members' devices through a relay server. There are no accounts or passwords: you start a family, then invite others with a link or QR code. Everything is end-to-end encrypted, so the relay only sees ciphertext. Syncing is built on the [Sync PWA Framework](https://github.com/epl692/Sync-PWA-Framework).
 
 See [dinner-sticks-pwa-design.md](dinner-sticks-pwa-design.md) for the full product spec, and [CLAUDE.md](CLAUDE.md) for architecture notes if you're developing on this codebase.
 
 ## Tech stack
 
 - React 19 + TypeScript, built with Vite
-- Zustand for state, Dexie (IndexedDB) for persistence
+- Zustand for state; [Sync PWA Framework](https://github.com/epl692/Sync-PWA-Framework) (`@sync/core`, `@sync/spaces`, `@sync/identity-invite`, `@sync/transport-websocket`) for local-first storage, end-to-end encryption and sync
+- Dexie is kept only to read the pre-sync on-device library for the one-time upload
 - `vite-plugin-pwa` for the service worker + web app manifest
 - Vitest + Testing Library for tests
+
+## Sync server
+
+By default the app connects to the relay at `wss://sync.epl692.duckdns.org`. The relay stores and forwards encrypted packets and never holds keys, so one relay can serve this app, other apps built on the framework, and any number of unrelated families.
+
+**It's easy to change**, at any of these levels (highest priority first):
+
+1. **In the app**: first-launch screen or Family screen → **Sync server** → type an address → _Use this server_. Per device, immediate, remembered, reversible.
+2. **When the container starts**: `RELAY_URL=wss://… docker compose up -d` (no rebuild).
+3. **At build time**: `VITE_SYNC_RELAY_URL=wss://your-relay.example npm run build`.
+4. The built-in default.
+
+Everyone in a family must use the same relay.
+
+### Run it all in Docker
+
+```bash
+docker compose up --build        # app on http://localhost:8080, your own relay on ws://localhost:8787
+```
+
+Full instructions (HTTPS for phones, configuration, moving a family to a new relay, caveats): **[docs/docker.md](docs/docker.md)**.
+
+The framework is installed as a git dependency (`sync-pwa-framework`) and consumed as TypeScript source. `npm install` runs `scripts/sync-types.mjs`, which generates declaration files into `.sync-types/` (git-ignored) so the app type-checks against them; `npm run build` re-runs it.
 
 ## Local development
 

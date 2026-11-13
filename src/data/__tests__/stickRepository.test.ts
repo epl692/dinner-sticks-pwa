@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createPool } from '../../domain/entities/pool'
 import { createStick } from '../../domain/entities/stick'
-import { db } from '../db'
+import { testDb as db } from '../../test/testData'
 import { addPool } from '../repositories/poolRepository'
 import {
   addStick,
@@ -40,11 +40,13 @@ describe('stickRepository', () => {
     expect(sticksInA.map((s) => s.id)).toEqual([stickA.id])
   })
 
-  it('rejects a case-insensitive duplicate name within the same pool', async () => {
+  // As for pools: uniqueness is a domain-layer rule (isStickNameUnique); storage keeps both if two devices race.
+  it('keeps both sticks when same-named sticks added on different devices meet', async () => {
     const pool = createPool('Dinner')
     await addPool(pool)
     await addStick(createStick(pool.id, 'Tacos'))
-    await expect(addStick(createStick(pool.id, 'tacos'))).rejects.toThrow()
+    await addStick(createStick(pool.id, 'tacos'))
+    expect(await getSticksForPool(pool.id)).toHaveLength(2)
   })
 
   it('allows the same name to exist independently in a different pool', async () => {

@@ -1,3 +1,4 @@
+import { FamilyScreen } from '../screens/Family/FamilyScreen'
 import { HomeScreen } from '../screens/Home/HomeScreen'
 import { PoolManagementScreen } from '../screens/PoolManagement/PoolManagementScreen'
 import { PoolSwitcherScreen } from '../screens/PoolSwitcher/PoolSwitcherScreen'
@@ -16,5 +17,7 @@ export function NavigationStack() {
       return <PoolManagementScreen />
     case 'poolSwitcher':
       return <PoolSwitcherScreen />
+    case 'family':
+      return <FamilyScreen />
   }
 }

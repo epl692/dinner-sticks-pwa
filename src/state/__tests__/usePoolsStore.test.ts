@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { db } from '../../data/db'
+import { testDb as db } from '../../test/testData'
 import { DEFAULT_POOL_NAME } from '../../domain/rules/poolLifecycle'
 import { useBinStore } from '../useBinStore'
 import { usePoolsStore } from '../usePoolsStore'

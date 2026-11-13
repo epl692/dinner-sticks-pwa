@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { db } from '../../data/db'
+import { testDb as db } from '../../test/testData'
 import { useImportExportStore } from '../useImportExportStore'
 import { usePoolsStore } from '../usePoolsStore'
 import { useSticksStore } from '../useSticksStore'

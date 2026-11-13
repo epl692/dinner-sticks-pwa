@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type ScreenName = 'home' | 'weeklyDraw' | 'poolManagement' | 'poolSwitcher'
+export type ScreenName = 'home' | 'weeklyDraw' | 'poolManagement' | 'poolSwitcher' | 'family'
 
 interface NavigationState {
   stack: ScreenName[]

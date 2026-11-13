@@ -5,18 +5,22 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "node scripts/sync-types.mjs && tsc -b && vite build",
     "lint": "oxlint",
     "format": "prettier --write .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "sync-types": "node scripts/sync-types.mjs",
+    "postinstall": "node scripts/sync-types.mjs"
   },
   "dependencies": {
     "dexie": "^4.4.4",
     "lucide-react": "^1.25.0",
+    "qrcode-generator": "^1.5.2",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "sync-pwa-framework": "github:epl692/Sync-PWA-Framework#master",
     "zustand": "^5.0.14"
   },
   "devDependencies": {

@@ -1,35 +1,53 @@
+import type { SyncableObject } from '@sync/core'
 import type { Stick } from '../../domain/entities/stick'
-import { normalizeName } from '../../domain/rules/nameUniqueness'
-import { db, type StoredStick } from '../db'
+import { getDataContext, listObjects, TYPE } from '../../sync/dataContext'
+import { byCreation } from './poolRepository'
 
-function toDomain(stored: StoredStick): Stick {
-  return { id: stored.id, poolId: stored.poolId, name: stored.name, createdAt: stored.createdAt }
+function toStick(o: SyncableObject): Stick {
+  return {
+    id: o.id,
+    poolId: String(o.fields.poolId ?? ''),
+    name: String(o.fields.name ?? ''),
+    createdAt: Number(o.fields.createdAt ?? 0),
+  }
 }
 
 export async function getSticksForPool(poolId: string): Promise<Stick[]> {
-  const stored = await db.sticks.where('poolId').equals(poolId).toArray()
-  return stored.map(toDomain)
+  const { core, space } = getDataContext()
+  const rows = await core
+    .query({ space, type: TYPE.stick, where: (o) => o.fields.poolId === poolId })
+    .once()
+  return rows.map(toStick).sort(byCreation)
 }
 
 /** Across all pools — used for library export (§4.6), not for per-pool screens. */
 export async function getAllSticks(): Promise<Stick[]> {
-  const stored = await db.sticks.toArray()
-  return stored.map(toDomain)
+  return (await listObjects(TYPE.stick)).map(toStick).sort(byCreation)
 }
 
 export async function getStick(id: string): Promise<Stick | undefined> {
-  const stored = await db.sticks.get(id)
-  return stored ? toDomain(stored) : undefined
+  const { core } = getDataContext()
+  const o = await core.get(id)
+  return o && o.type === TYPE.stick ? toStick(o) : undefined
 }
 
 export async function addStick(stick: Stick): Promise<void> {
-  await db.sticks.add({ ...stick, nameLower: normalizeName(stick.name) })
+  const { core, space } = getDataContext()
+  await core.create(
+    space,
+    TYPE.stick,
+    { poolId: stick.poolId, name: stick.name, createdAt: stick.createdAt },
+    { id: stick.id },
+  )
 }
 
 export async function updateStick(stick: Stick): Promise<void> {
-  await db.sticks.put({ ...stick, nameLower: normalizeName(stick.name) })
+  const { core } = getDataContext()
+  await core.update(stick.id, { name: stick.name })
 }
 
+/** Never cascades into bins: a bin may keep a stale reference, which is filtered on read (§6). */
 export async function deleteStick(id: string): Promise<void> {
-  await db.sticks.delete(id)
+  const { core } = getDataContext()
+  await core.remove(id)
 }

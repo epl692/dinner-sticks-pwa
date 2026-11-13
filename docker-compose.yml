@@ -1,0 +1,48 @@
+# Dinner Sticks, self-hosted: the app plus its own sync relay.
+#
+#   docker compose up --build            # app on http://localhost:8080, relay on ws://localhost:8787
+#   docker compose --profile https up -d --build   # same, behind automatic HTTPS (set DOMAIN in .env)
+#
+# See docs/docker.md.
+services:
+  relay:
+    build:
+      context: docker/relay
+      args:
+        SYNC_REF: ${SYNC_REF:-master}
+    restart: unless-stopped
+    ports:
+      - '${RELAY_PORT:-8787}:8787'
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    restart: unless-stopped
+    environment:
+      # What browsers should connect to. It has to be reachable FROM THE PHONE/LAPTOP, not just from this host.
+      RELAY_URL: ${RELAY_URL:-ws://localhost:8787}
+    ports:
+      - '${APP_PORT:-8080}:80'
+    depends_on:
+      - relay
+
+  # Optional: automatic HTTPS (needed to install the app on phones and to use it from other devices).
+  caddy:
+    profiles: ['https']
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on:
+      - app
+      - relay
+
+volumes:
+  caddy_data:

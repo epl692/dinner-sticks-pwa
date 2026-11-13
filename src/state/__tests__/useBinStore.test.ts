@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { db } from '../../data/db'
+import { testDb as db } from '../../test/testData'
 import { getAddCandidates } from '../../domain/rules/addToBin'
 import { useBinStore } from '../useBinStore'
 import { useSticksStore } from '../useSticksStore'
