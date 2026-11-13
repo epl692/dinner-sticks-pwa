@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { createPool } from '../../domain/entities/pool'
 import { createStick } from '../../domain/entities/stick'
 import { createWeeklyBin } from '../../domain/entities/weeklyBin'
-import { db } from '../db'
+import { testDb as db } from '../../test/testData'
 import { replaceLibrary } from '../repositories/libraryRepository'
 import { addPool } from '../repositories/poolRepository'
 import { addStick } from '../repositories/stickRepository'
@@ -32,22 +32,21 @@ describe('replaceLibrary', () => {
     expect(await db.weeklyBins.count()).toBe(0)
   })
 
-  it('is atomic — a failure partway through leaves the previous library untouched', async () => {
+  // The family Space has no multi-object transaction. All-or-nothing validation happens before replaceLibrary is
+  // called (useImportExportStore); what storage guarantees is that re-running a replace converges on the file.
+  it('can be re-run after an interruption and ends with exactly the imported library', async () => {
     const existingPool = createPool('Dinner')
     await addPool(existingPool)
-    const existingStick = createStick(existingPool.id, 'Tacos')
-    await addStick(existingStick)
+    await addStick(createStick(existingPool.id, 'Tacos'))
 
+    // Each import builds its plan with fresh ids (buildReplacePlan), and a deleted id is never reused.
+    const firstPool = createPool('Breakfast')
+    await replaceLibrary([firstPool], [createStick(firstPool.id, 'Pancakes')])
     const newPool = createPool('Breakfast')
-    // Two sticks with a colliding (poolId, nameLower) pair violate the unique
-    // index and should abort the whole transaction.
-    const stickA = createStick(newPool.id, 'Pancakes')
-    const stickB = createStick(newPool.id, 'pancakes')
+    const newStick = createStick(newPool.id, 'Pancakes')
+    await replaceLibrary([newPool], [newStick])
 
-    await expect(replaceLibrary([newPool], [stickA, stickB])).rejects.toThrow()
-
-    // Previous data must be exactly as it was — no partial clear/apply.
-    expect(await db.pools.toArray()).toEqual([{ ...existingPool, nameLower: 'dinner' }])
-    expect(await db.sticks.toArray()).toEqual([{ ...existingStick, nameLower: 'tacos' }])
+    expect(await db.pools.toArray()).toEqual([newPool])
+    expect(await db.sticks.toArray()).toEqual([newStick])
   })
 })

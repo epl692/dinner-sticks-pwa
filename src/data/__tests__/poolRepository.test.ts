@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createPool } from '../../domain/entities/pool'
-import { db } from '../db'
+import { testDb as db } from '../../test/testData'
 import {
   addPool,
   deletePool,
@@ -31,9 +31,13 @@ describe('poolRepository', () => {
     expect(all.map((p) => p.id).sort()).toEqual([a.id, b.id].sort())
   })
 
-  it('rejects a case-insensitive duplicate name at the DB boundary (defense-in-depth)', async () => {
+  // Name uniqueness is enforced by the domain layer (isPoolNameUnique) before a write. Storage cannot enforce it:
+  // two family members offline can each create "Dinner", and both pools arrive when they sync. That must not
+  // lose or hide either pool.
+  it('keeps both pools when same-named pools made on different devices meet', async () => {
     await addPool(createPool('Dinner'))
-    await expect(addPool(createPool('dinner'))).rejects.toThrow()
+    await addPool(createPool('dinner'))
+    expect(await getAllPools()).toHaveLength(2)
   })
 
   it('updates a pool', async () => {

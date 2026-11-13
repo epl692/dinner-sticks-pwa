@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { DEFAULT_POOL_NAME } from '../../domain/rules/poolLifecycle'
-import { db } from '../db'
+import { testDb as db } from '../../test/testData'
 import { addPool } from '../repositories/poolRepository'
 import { seedIfEmpty } from '../seed'
 import { createPool } from '../../domain/entities/pool'

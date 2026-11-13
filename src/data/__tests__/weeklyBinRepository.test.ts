@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createPool } from '../../domain/entities/pool'
 import { createWeeklyBin } from '../../domain/entities/weeklyBin'
-import { db } from '../db'
+import { testDb as db } from '../../test/testData'
 import {
   deleteBinForPool,
   getBinForPool,

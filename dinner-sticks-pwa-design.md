@@ -20,7 +20,7 @@ Three-tier model:
 
 Nothing is destroyed by daily use. Discarding a stick during a draw, removing one from the bin, or marking one "Done" never deletes it from its pool — ideas remain available for future weeks. The **only** way to permanently lose an idea is to explicitly delete it from its pool.
 
-The app is single-user, single-device, and fully offline: no accounts, no login, no network dependency, no cloud sync. All data lives locally and must survive app/browser restarts indefinitely.
+The app is **offline-first and shared by a family** (§4.7): every device keeps a full local copy that works with no connection and survives app/browser restarts indefinitely, and devices of the same family merge their changes whenever they can reach a sync relay. There are no accounts or passwords — people join a family by invite link or QR code. Everything above (pools, draws, bins) behaves exactly as before; sync changes where the data lives, not what the app does.
 
 ---
 
@@ -214,14 +214,27 @@ Both modes share these properties:
 
 ### 4.6 Import and export the meal library
 
-Since the app is deliberately single-device with no sync (§7), the user can move their meal ideas between separate instances (e.g. phone and desktop) by hand, via a JSON file (see §3a for the concrete file/DB schemas):
+Besides family sync (§4.7), the user can move their meal ideas between separate families or instances by hand, via a JSON file (see §3a for the concrete file/DB schemas):
 
 - **Export** produces a single JSON file containing every pool and every stick within it (names only — no ids, timestamps, or weekly bin state, since bins are transient weekly data that doesn't make sense to carry between instances). This is a non-destructive, immediate action requiring no confirmation.
 - **Import** reads a JSON file the user selects and **replaces** the current instance's entire meal library with its contents: all existing pools and sticks are removed and replaced by what's in the file, and — because sticks are being wholesale replaced — any existing weekly bin (on any pool) is cleared as part of the same operation rather than left referencing sticks that may no longer exist.
-  - Because this discards existing data, it requires an explicit confirmation step before applying, naming the consequence (this replaces all current pools and meal ideas on this device, and cannot be undone).
+  - Because this discards existing data, it requires an explicit confirmation step before applying, naming the consequence (this replaces all current pools and meal ideas **for everyone in the family**, and cannot be undone).
   - The file is validated before anything is applied: a malformed file, or one with zero pools, is rejected with a clear error and nothing changes. There is no partial import.
   - After a successful import, the first pool in the file becomes the active pool.
   - The existing name-uniqueness rules (§3) still apply to the imported data — a file containing duplicate pool names, or duplicate stick names within one pool, is rejected as invalid.
+
+### 4.7 Family sync (shared, account-free)
+
+All pools, sticks and weekly bins live in one shared, end-to-end encrypted **family** space. Every function in §4.1–§4.6 works the same on every device; changes made on one device appear on the others automatically.
+
+- **First launch** asks for the person's name, then either **Start a family** (names it, creates the default "Dinner" pool) or **Join a family** (paste/open an invite link). There is no password and no account; a person is a name plus keys generated on their device.
+- **Invites.** A family owner creates a single-use invite link (also shown as a QR code) that expires in 7 days. When someone uses it, the owner is shown five words that the joiner's screen also shows, and must approve; only then does the joiner receive the family's keys and data. Opening an invite link prefills the Join form (the only URL-addressable state in the app; the secret is in the `#fragment`, which is never sent to any server).
+- **Members.** The Family screen lists members, lets owners remove a member (confirmation required; keys are rotated so the removed person cannot read later changes) or make another member an owner, and lets anyone leave. The last owner cannot leave.
+- **Offline.** All reads and writes go to the local copy first and never wait for the network. Changes made offline merge on reconnect. A sync status (connected / connecting / offline) is visible from the Home screen.
+- **Concurrent edits.** Two people changing the same family at once never loses either change: meals added to the same week's bin by different people both appear; marking one meal done and removing another both apply; renaming concurrently keeps the most recent rename. If two people each confirm a new weekly draw for the same pool at the same time, one draw (the later one) wins and the other is discarded.
+- **Name uniqueness (§6.6) is enforced where a person acts** — before a write on their device. It cannot be guaranteed across devices that were offline at the same time: if two people each create a pool or meal with the same name offline, both are kept and shown, and either can rename or delete one.
+- **Upload of pre-sync data.** If a device holds a library from before sync existed, the first launch after joining a family offers a one-time, additive upload: pools and meals that match by name (case-insensitive) are treated as already present, a weekly bin is carried over only where the family has none, and nothing already in the family is changed. Declining is remembered, and the Family screen keeps the option. The old on-device copy is never deleted.
+- **Import-replace (§4.6) is family-wide**: it replaces the shared library for everyone, and its confirmation says so.
 
 ---
 
@@ -284,10 +297,10 @@ These are the exact mechanics that must be reproduced precisely, since subtle de
 
 ## 7. Persistence & Offline Behavior
 
-- All pool, stick, and bin data must persist locally across sessions with no account, login, or network connection required at any point.
+- All pool, stick, and bin data must persist locally across sessions with no account, password, or network connection required to use the app (a connection is only needed to sync with the family, to accept an invite, and to receive a family's data for the first time after joining).
 - Changes should be reflected immediately everywhere they're displayed (e.g. adding a stick to a pool should be visible in any open list of that pool without a manual refresh).
 - The in-progress **Selection Session** (draw-in-review state) is deliberately **not** persisted. This is intentional: if the app is closed or crashes mid-draw, nothing is lost except the unconfirmed draw itself — the previously confirmed bin is guaranteed to be untouched.
-- There is no multi-device sync and no cloud backup of any kind — this is a single-device, local-only app.
+- Data is replicated to the family's other devices through a sync relay that only stores and forwards encrypted, signed packets; it cannot read the data. The relay is a convenience, not the source of truth: any device holding the data can bring another up to date. There is no other cloud backup. See §4.7.
 
 ---
 
@@ -333,13 +346,13 @@ Stated as user-perceived targets, not implementation techniques:
 
 ## 10. Explicit Non-Goals
 
-Carried forward unchanged from the original app — a rebuild should not silently add scope beyond this document:
+Carried forward from the original app, amended only for family sync (§4.7) — a rebuild should not silently add scope beyond this document:
 
-- No multi-device sync or cloud backend of any kind.
-- No user accounts, login, or authentication.
+- No cloud backend that can read the data, and no per-person accounts, passwords or logins. (Family sync, §4.7, is in scope: it uses a relay that sees only ciphertext, and invite links instead of accounts.)
+- No fine-grained sharing: everyone in a family sees and can edit every pool. (Owner vs. member only controls inviting/removing people.)
 - No notifications, reminders, or time/calendar-based scheduling — "weekly" is a purely user-initiated cadence, not an automated trigger.
 - No configurable draw size — the draw is always up to 5 sticks.
-- No deep linking / URL-addressable app states.
+- No deep linking / URL-addressable app states, other than opening an invite link (§4.7).
 
 ---
 
@@ -364,3 +377,5 @@ Carried forward from the original spec, reframed generically:
 - All meal ideas and the current weekly bin survive an app/browser restart with 100% fidelity — zero data loss, across every pool.
 - A second pool can be created, populated, and drawn from without any interference with an existing pool's data or bin.
 - A first-time user can complete the full flow — add ideas, draw the week, pick tonight's meal — without needing external instructions.
+- A second device can join a family from an invite link in under 2 minutes, and sees the family's pools and current weekly bin once it has connected.
+- Changes made on two devices while both are offline are all present on both after they reconnect (none are lost), and the app was fully usable while offline.

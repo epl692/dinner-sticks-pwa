@@ -14,6 +14,12 @@
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
+    "paths": {
+      "@sync/core": ["./.sync-types/dist/core/index.d.ts"],
+      "@sync/spaces": ["./.sync-types/dist/spaces/index.d.ts"],
+      "@sync/identity-invite": ["./.sync-types/dist/identity-invite/index.d.ts"],
+      "@sync/transport-websocket": ["./.sync-types/dist/transport-websocket/index.d.ts"]
+    },
     "jsx": "react-jsx",
 
     /* Linting */

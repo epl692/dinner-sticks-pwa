@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { db } from '../../data/db'
+import { testDb as db } from '../../test/testData'
 import type { Stick } from '../../domain/entities/stick'
 import { useSelectionSessionStore } from '../useSelectionSessionStore'
 import { useSticksStore } from '../useSticksStore'

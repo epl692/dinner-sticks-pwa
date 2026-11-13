@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useFamilyStore } from '../../../state/useFamilyStore'
 import { filterActiveDisplayable } from '../../../domain/rules/staleReferences'
 import { useBinStore } from '../../../state/useBinStore'
 import { usePoolsStore } from '../../../state/usePoolsStore'
@@ -7,6 +8,7 @@ import { useNavigationStack } from '../../navigation/useNavigationStack'
 import { AddStickToBinDialog } from '../shared/AddStickToBinDialog'
 import { EmptyState } from '../shared/EmptyState'
 import { BinList } from './BinList'
+import { LINK_TEXT } from '../Family/linkText'
 import { RandomPickButton } from './RandomPickButton'
 
 export function HomeScreen() {
@@ -16,6 +18,8 @@ export function HomeScreen() {
   const bin = useBinStore((s) => s.bin)
   const markDone = useBinStore((s) => s.markDone)
   const push = useNavigationStack((s) => s.push)
+  const familyName = useFamilyStore((s) => s.familyName)
+  const link = useFamilyStore((s) => s.link)
 
   const [selectedStickId, setSelectedStickId] = useState<string | null>(null)
   const [addDialogOpen, setAddDialogOpen] = useState(false)
@@ -38,13 +42,28 @@ export function HomeScreen() {
     <main>
       <button
         type="button"
+        onClick={() => push('family')}
+        aria-label={`Family: ${familyName ?? ''}. ${LINK_TEXT[link]}. Open family and sharing.`}
+      >
+        {familyName ?? 'Family'} ·{' '}
+        {link === 'online' ? 'Synced' : link === 'connecting' ? 'Connecting' : 'Offline'}
+      </button>
+
+      <button
+        type="button"
         onClick={() => push('poolSwitcher')}
         aria-label={`Active pool: ${activePool?.name ?? ''}. Tap to switch.`}
       >
         {activePool?.name}
       </button>
 
-      {activeSticks.length === 0 ? (
+      {!activePool ? (
+        <EmptyState
+          message="Waiting for your family's meals to arrive. This needs a connection the first time."
+          actionLabel="Add a pool"
+          onAction={() => push('poolSwitcher')}
+        />
+      ) : activeSticks.length === 0 ? (
         <EmptyState
           message="No meals planned this week"
           actionLabel="Start a weekly draw"
