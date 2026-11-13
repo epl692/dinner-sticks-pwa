@@ -16,7 +16,7 @@ See [dinner-sticks-pwa-design.md](dinner-sticks-pwa-design.md) for the full prod
 
 ## Sync server
 
-By default the app connects to the relay at `wss://sync.epl692.duckdns.org`. The relay stores and forwards encrypted packets and never holds keys, so one relay can serve this app, other apps built on the framework, and any number of unrelated families.
+By default the app connects to the relay at `wss://relay.epl692.duckdns.org`. The relay stores and forwards encrypted packets and never holds keys, so one relay can serve this app, other apps built on the framework, and any number of unrelated families.
 
 **It's easy to change**, at any of these levels (highest priority first):
 

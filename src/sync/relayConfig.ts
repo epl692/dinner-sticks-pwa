@@ -6,7 +6,7 @@
  *   4. the default below
  * Everyone in a family must use the same relay (or one that holds the same data).
  */
-export const DEFAULT_RELAY_URL = 'wss://sync.epl692.duckdns.org'
+export const DEFAULT_RELAY_URL = 'wss://relay.epl692.duckdns.org'
 
 const STORAGE_KEY = 'dinner-sticks:relay-url'
 
