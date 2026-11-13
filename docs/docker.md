@@ -62,7 +62,7 @@ There are four layers, highest priority first. Whichever is in effect is shown, 
 1. **In the app, per device.** Open **Sync server**, type the new address, **Use this server**. It takes effect immediately and is remembered on that device. **Go back to the default** removes it. Local data is untouched.
 2. **Container start:** `RELAY_URL` (above). Applies to everyone using that deployment who hasn't chosen their own.
 3. **Build time:** `VITE_SYNC_RELAY_URL=wss://… npm run build`.
-4. **Built-in default:** `wss://sync.epl692.duckdns.org`.
+4. **Built-in default:** `wss://relay.epl692.duckdns.org`.
 
 **Everyone in a family must end up on the same relay.** When you move a family to a new relay, each person switches (or gets the new deployment); every device already holds the family's data and pushes it to the new relay, so nothing is lost as long as at least one device that has the data connects. A device that was offline for a long time catches up from the others.
 
