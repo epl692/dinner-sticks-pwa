@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useFamilyStore } from '../../../state/useFamilyStore'
+import { RelaySettings } from '../shared/RelaySettings'
 
 /**
  * First launch (and after leaving a family): no account, no password. Say who you are, then
@@ -121,6 +122,7 @@ export function SetupScreen() {
           try again.
         </p>
       )}
+      <RelaySettings />
     </main>
   )
 }

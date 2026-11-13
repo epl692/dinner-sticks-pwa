@@ -1,0 +1,13 @@
+# Optional HTTPS front door (docker compose --profile https up). One domain serves the app and the relay:
+#   https://{$DOMAIN}        -> the app
+#   wss://{$DOMAIN}/sync     -> the relay
+# Caddy gets and renews a certificate automatically; ports 80 and 443 must reach this machine.
+{$DOMAIN} {
+  encode zstd gzip
+  handle /sync* {
+    reverse_proxy relay:8787
+  }
+  handle {
+    reverse_proxy app:80
+  }
+}

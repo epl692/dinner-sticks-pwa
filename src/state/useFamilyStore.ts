@@ -1,6 +1,13 @@
 import { create } from 'zustand'
 import type { InviteArtifact, JoinRequestView, MemberInfo, Role } from '@sync/spaces'
 import { seedIfEmpty } from '../data/seed'
+import {
+  getRelay,
+  loadDeploymentConfig,
+  parseRelayUrl,
+  setChosenRelay,
+  type RelaySource,
+} from '../sync/relayConfig'
 import { openSync, type SyncSession } from '../sync/session'
 import { setDataContext } from '../sync/dataContext'
 
@@ -44,6 +51,10 @@ interface FamilyState {
   pendingJoin: PendingJoin | null
   join: JoinProgress
   invite: InviteArtifact | null
+  /** The sync server this device uses, and where that choice came from. */
+  relay: { url: string; source: RelaySource }
+  /** Switches server (or, with null, back to the deployment/default one). Local data is untouched. */
+  changeRelay: (input: string | null) => Promise<{ ok: true } | { ok: false; error: string }>
   /** An invite link the app was opened with, to prefill the join form. */
   incomingInvite: string | null
 
@@ -143,12 +154,34 @@ export const useFamilyStore = create<FamilyState>((set, get) => {
     join: { status: 'idle', sas: null, error: null },
     invite: null,
     incomingInvite: null,
+    relay: getRelay(),
+
+    changeRelay: async (input) => {
+      const { session } = get()
+      let url: string | null = null
+      if (input !== null) {
+        const parsed = parseRelayUrl(input)
+        if (!parsed.ok) return parsed
+        url = parsed.url
+      }
+      try {
+        setChosenRelay(url)
+        const relay = getRelay()
+        await session?.switchRelay(relay.url)
+        set({ relay, link: 'connecting' })
+        return { ok: true }
+      } catch (err) {
+        return { ok: false, error: message(err) }
+      }
+    },
 
     start: () => {
       // React StrictMode runs effects twice in development; only open the stores once.
       starting ??= (async () => {
         try {
           set({ incomingInvite: takeIncomingInvite() })
+          await loadDeploymentConfig()
+          set({ relay: getRelay() })
           const session = await openSync({ approveJoin })
           if (session.spaces.state === 'unsupported') {
             set({ phase: 'unsupported', session })

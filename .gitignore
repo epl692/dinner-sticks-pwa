@@ -25,3 +25,4 @@ coverage
 *.sln
 *.sw?
 .sync-types
+.env

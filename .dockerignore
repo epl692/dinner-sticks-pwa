@@ -1,0 +1,9 @@
+node_modules
+dist
+.sync-types
+.git
+.env
+*.log
+docker
+!docker/app
+!docker/relay

@@ -8,6 +8,7 @@ import { useNoticeStore } from '../../../state/useNoticeStore'
 import { usePoolsStore } from '../../../state/usePoolsStore'
 import { useNavigationStack } from '../../navigation/useNavigationStack'
 import { ConfirmDialog } from '../shared/ConfirmDialog'
+import { RelaySettings } from '../shared/RelaySettings'
 
 export function FamilyScreen() {
   const pop = useNavigationStack((s) => s.pop)
@@ -175,6 +176,8 @@ export function FamilyScreen() {
           </button>
         </section>
       )}
+
+      <RelaySettings />
 
       <section aria-labelledby="family-leave-heading">
         <h2 id="family-leave-heading">Leave</h2>

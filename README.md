@@ -16,13 +16,24 @@ See [dinner-sticks-pwa-design.md](dinner-sticks-pwa-design.md) for the full prod
 
 ## Sync server
 
-By default the app connects to the relay at `wss://sync.epl692.duckdns.org`. The relay stores and forwards encrypted packets and never holds keys, so one relay can serve this app, other apps built on the framework, and any number of unrelated families. To use a different one, set it at build time:
+By default the app connects to the relay at `wss://sync.epl692.duckdns.org`. The relay stores and forwards encrypted packets and never holds keys, so one relay can serve this app, other apps built on the framework, and any number of unrelated families.
+
+**It's easy to change**, at any of these levels (highest priority first):
+
+1. **In the app**: first-launch screen or Family screen → **Sync server** → type an address → _Use this server_. Per device, immediate, remembered, reversible.
+2. **When the container starts**: `RELAY_URL=wss://… docker compose up -d` (no rebuild).
+3. **At build time**: `VITE_SYNC_RELAY_URL=wss://your-relay.example npm run build`.
+4. The built-in default.
+
+Everyone in a family must use the same relay.
+
+### Run it all in Docker
 
 ```bash
-VITE_SYNC_RELAY_URL=wss://your-relay.example npm run build
+docker compose up --build        # app on http://localhost:8080, your own relay on ws://localhost:8787
 ```
 
-To run a relay of your own (Node 20+): clone the framework repo, `npm install`, then `npm run relay-server` (listens on `ws://localhost:8787`; put it behind HTTPS/WSS for real use, since a page served over HTTPS can only open `wss://` connections).
+Full instructions (HTTPS for phones, configuration, moving a family to a new relay, caveats): **[docs/docker.md](docs/docker.md)**.
 
 The framework is installed as a git dependency (`sync-pwa-framework`) and consumed as TypeScript source. `npm install` runs `scripts/sync-types.mjs`, which generates declaration files into `.sync-types/` (git-ignored) so the app type-checks against them; `npm run build` re-runs it.
 

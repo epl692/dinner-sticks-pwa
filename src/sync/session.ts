@@ -2,22 +2,13 @@ import { createIndexedDbStorage, type SyncCore } from '@sync/core'
 import { createInviteProvider } from '@sync/identity-invite'
 import { assertSecureCore, openSecureCore, type JoinRequestView, type Spaces } from '@sync/spaces'
 import { createWebSocketTransport } from '@sync/transport-websocket'
-
-/**
- * The sync relay every device of every family connects to. It only ever sees encrypted, signed
- * packets, so one relay can serve any number of unrelated apps and families. Override at build
- * time with VITE_SYNC_RELAY_URL (for example for a relay of your own).
- */
-export const DEFAULT_RELAY_URL = 'wss://sync.epl692.duckdns.org'
-
-export function relayUrl(): string {
-  const configured = import.meta.env.VITE_SYNC_RELAY_URL
-  return typeof configured === 'string' && configured.trim() ? configured.trim() : DEFAULT_RELAY_URL
-}
+import { getRelay } from './relayConfig'
 
 export interface SyncSession {
   core: SyncCore
   spaces: Spaces
+  /** Points this device at another relay (or the same one again). The local data is untouched. */
+  switchRelay: (url: string) => Promise<void>
 }
 
 export interface OpenSyncOptions {
@@ -43,9 +34,17 @@ export async function openSync(opts: OpenSyncOptions): Promise<SyncSession> {
     core: { storage },
   })
 
+  const TRANSPORT_ID = 'websocket'
+  const switchRelay = async (url: string) => {
+    if (spaces.state !== 'ready') return
+    if (core.transports().some((t) => t.id === TRANSPORT_ID))
+      await core.removeTransport(TRANSPORT_ID)
+    core.addTransport(createWebSocketTransport({ url, id: TRANSPORT_ID }))
+  }
+
   if (spaces.state === 'ready') {
     assertSecureCore(core)
-    core.addTransport(createWebSocketTransport({ url: relayUrl() }))
+    await switchRelay(getRelay().url)
   }
-  return { core, spaces }
+  return { core, spaces, switchRelay }
 }
